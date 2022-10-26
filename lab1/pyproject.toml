@@ -1,0 +1,17 @@
+[tool.poetry]
+name = "lab1"
+version = "0.1.0"
+description = "Laboratory 1 for AML"
+authors = ["Salvo-kun <s256708@studenti.polito.it>"]
+readme = "README.md"
+
+[tool.poetry.dependencies]
+python = "^3.10"
+torchvision = "^0.13.1"
+numpy = "^1.23.4"
+tqdm = "^4.64.1"
+
+
+[build-system]
+requires = ["poetry-core"]
+build-backend = "poetry.core.masonry.api"
