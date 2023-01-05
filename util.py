@@ -71,4 +71,4 @@ def choose_loss(loss_type, *args):
     else:
         raise ValueError(f"Loss type {loss_type} is not valid!")
 
-    return loss(args)
+    return loss(*args)
