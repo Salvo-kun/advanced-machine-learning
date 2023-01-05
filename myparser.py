@@ -53,7 +53,10 @@ def parse_arguments(is_training: bool = True):
     parser.add_argument("--dataset_folder", type=str, default=None,
                         help="path of the folder with train/val/test sets")
     parser.add_argument("--save_dir", type=str, default="default",
-                        help="name of directory on which to save the logs, under logs/save_dir")
+                        help="name of directory on which to save the logs, under logs/save_dir")    
+    # Loss type
+    parser.add_argument("--loss_type", type=str, default="cosface",
+                        choices=["cosface", "arcface", "sphereface"], help="type of loss to be used during training")
     
     args = parser.parse_args()
     

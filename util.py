@@ -4,7 +4,7 @@ import shutil
 import logging
 from typing import Type, List
 from argparse import Namespace
-from cosface_loss import MarginCosineProduct
+from losses import genericface_loss, cosface_loss, sphereface_loss, arcface_loss
 
 
 def move_to_device(optimizer: Type[torch.optim.Optimizer], device: str):
@@ -24,7 +24,7 @@ def save_checkpoint(state: dict, is_best: bool, output_folder: str,
 
 
 def resume_train(args: Namespace, output_folder: str, model: torch.nn.Module,
-                 model_optimizer: Type[torch.optim.Optimizer], classifiers: List[MarginCosineProduct],
+                 model_optimizer: Type[torch.optim.Optimizer], classifiers: List[genericface_loss.GenericFace],
                  classifiers_optimizers: List[Type[torch.optim.Optimizer]]):
     """Load model, optimizer, and other training parameters"""
     logging.info(f"Loading checkpoint: {args.resume_train}")
@@ -58,3 +58,17 @@ def resume_train(args: Namespace, output_folder: str, model: torch.nn.Module,
     shutil.copy(args.resume_train.replace("last_checkpoint.pth", "best_model.pth"), output_folder)
     
     return model, model_optimizer, classifiers, classifiers_optimizers, best_val_recall1, start_epoch_num
+
+def choose_loss(loss_type, *args):
+    loss = None
+
+    if loss_type == 'cosface':
+        loss = cosface_loss.CosFace
+    elif loss_type == 'arcface':
+        loss = arcface_loss.ArcFace
+    elif loss_type == 'sphereface':
+        loss = sphereface_loss.SphereFace
+    else:
+        raise ValueError(f"Loss type {loss_type} is not valid!")
+
+    return loss(args)

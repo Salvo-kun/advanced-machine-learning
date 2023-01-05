@@ -10,9 +10,8 @@ import torchvision.transforms as T
 
 import test
 import util
-import parser
+import myparser
 import commons
-import cosface_loss
 import augmentations
 from model import network
 from datasets.test_dataset import TestDataset
@@ -20,7 +19,7 @@ from datasets.train_dataset import TrainDataset
 
 torch.backends.cudnn.benchmark = True  # Provides a speedup
 
-args = parser.parse_arguments()
+args = myparser.parse_arguments()
 start_time = datetime.now()
 output_folder = f"logs/{args.save_dir}/{start_time.strftime('%Y-%m-%d_%H-%M-%S')}"
 commons.make_deterministic(args.seed)
@@ -42,14 +41,13 @@ if args.resume_model is not None:
 model = model.to(args.device).train()
 
 #### Optimizer
-criterion = torch.nn.CrossEntropyLoss()
 model_optimizer = torch.optim.Adam(model.parameters(), lr=args.lr)
 
 #### Datasets
 groups = [TrainDataset(args, args.train_set_folder, M=args.M, alpha=args.alpha, N=args.N, L=args.L,
                        current_group=n, min_images_per_class=args.min_images_per_class) for n in range(args.groups_num)]
 # Each group has its own classifier, which depends on the number of classes in the group
-classifiers = [cosface_loss.MarginCosineProduct(args.fc_output_dim, len(group)) for group in groups]
+classifiers = [util.choose_loss(args.loss_type, args.fc_output_dim, len(group)) for group in groups]
 classifiers_optimizers = [torch.optim.Adam(classifier.parameters(), lr=args.classifiers_lr) for classifier in classifiers]
 
 logging.info(f"Using {len(groups)} groups")
@@ -123,21 +121,19 @@ for epoch_num in range(start_epoch_num, args.epochs_num):
         
         if not args.use_amp16:
             descriptors = model(images)
-            output = classifiers[current_group_num](descriptors, targets)
-            loss = criterion(output, targets)
+            loss = classifiers[current_group_num](descriptors, targets)
             loss.backward()
             epoch_losses = np.append(epoch_losses, loss.item())
-            del loss, output, images
+            del loss, images
             model_optimizer.step()
             classifiers_optimizers[current_group_num].step()
         else:  # Use AMP 16
             with torch.cuda.amp.autocast():
                 descriptors = model(images)
-                output = classifiers[current_group_num](descriptors, targets)
-                loss = criterion(output, targets)
+                loss = classifiers[current_group_num](descriptors, targets)
             scaler.scale(loss).backward()
             epoch_losses = np.append(epoch_losses, loss.item())
-            del loss, output, images
+            del loss, images
             scaler.step(model_optimizer)
             scaler.step(classifiers_optimizers[current_group_num])
             scaler.update()
