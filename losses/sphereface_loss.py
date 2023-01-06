@@ -30,7 +30,6 @@ class SphereFace(GenericFace):
             d_theta = phi_theta - cos_theta
 
         logits = self.s * (cos_theta + d_theta)
-        loss = F.cross_entropy(logits, y)
 
-        return loss
+        return logits
 
