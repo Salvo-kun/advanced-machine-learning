@@ -6,6 +6,7 @@ import numpy as np
 from tqdm import tqdm
 from datetime import datetime
 import torchvision.transforms as T
+from torch.utils.data.dataloader import DataLoader
 
 import test
 import util
@@ -15,35 +16,36 @@ import augmentations
 
 torch.backends.cudnn.benchmark = True  # Provides a speedup
 
+######################################### SETUP #########################################
 args = parser.parse_arguments()
 start_time = datetime.now()
-output_folder = f"logs/{args.save_dir}/{start_time.strftime('%Y-%m-%d_%H-%M-%S')}"
+args.output_folder = f"logs/{args.save_dir}/{start_time.strftime('%Y-%m-%d_%H-%M-%S')}"
 commons.make_deterministic(args.seed)
-commons.setup_logging(output_folder, console="debug")
+commons.setup_logging(args.output_folder, console="debug")
 logging.info(" ".join(sys.argv))
 logging.info(f"Arguments: {args}")
-logging.info(f"The outputs are being saved in {output_folder}")
+logging.info(f"The outputs are being saved in {args.output_folder}")
 
-#### Model
-model = util.create_model(args)
+######################################### MODEL #########################################
+model = util.build_model(args)
 
-#### Optimizer
-criterion = torch.nn.CrossEntropyLoss()
+######################################### OPTIMIZER & LOSSES #########################################
 model_optimizer = torch.optim.Adam(model.parameters(), lr=args.lr)
+criterion = torch.nn.CrossEntropyLoss()
 
-#### Datasets
-groups, classifiers, classifiers_optimizers, val_ds, test_ds = util.load_datasets(args)
+######################################### DATASETS #########################################
+groups, classifiers, classifiers_optimizers, val_ds, test_ds, grl_ds = util.load_datasets(args)
 
-#### Resume
+######################################### RESUME #########################################
 if args.resume_train:
-    model, model_optimizer, classifiers, classifiers_optimizers, best_val_recall1, start_epoch_num = util.resume_train(args, output_folder, model, model_optimizer, classifiers, classifiers_optimizers)
+    model, model_optimizer, classifiers, classifiers_optimizers, best_val_recall1, start_epoch_num = util.resume_train(args, args.output_folder, model, model_optimizer, classifiers, classifiers_optimizers)
     model = model.to(args.device)
     epoch_num = start_epoch_num - 1
     logging.info(f"Resuming from epoch {start_epoch_num} with best R@1 {best_val_recall1:.1f} from checkpoint {args.resume_train}")
 else:
     best_val_recall1 = start_epoch_num = 0
 
-#### Train / evaluation loop
+######################################### TRAINING/EVALUATION #########################################
 logging.info("Start training ...")
 logging.info(f"There are {len(groups[0])} classes for the first group, " +
              f"each epoch has {args.iterations_per_epoch} iterations " +
@@ -78,6 +80,11 @@ for epoch_num in range(start_epoch_num, args.epochs_num):
     dataloader = commons.InfiniteDataLoader(groups[current_group_num], num_workers=args.num_workers,
                                             batch_size=args.batch_size, shuffle=True,
                                             pin_memory=(args.device == "cuda"), drop_last=True)
+
+    if args.grl:
+        epoch_grl_loss = 0
+        cross_entropy_loss = torch.nn.CrossEntropyLoss()
+        grl_dataloader = DataLoader(dataset=grl_ds, num_workers=args.num_workers, batch_size=args.grl_batch_size, shuffle=True, pin_memory=(args.device == "cuda"))
 
     dataloader_iterator = iter(dataloader)
     model = model.train()
@@ -115,6 +122,7 @@ for epoch_num in range(start_epoch_num, args.epochs_num):
             scaler.step(classifiers_optimizers[current_group_num])
             scaler.update()
 
+
     classifiers[current_group_num] = classifiers[current_group_num].cpu()
     util.move_to_device(classifiers_optimizers[current_group_num], "cpu")
 
@@ -135,12 +143,12 @@ for epoch_num in range(start_epoch_num, args.epochs_num):
         "classifiers_state_dict": [c.state_dict() for c in classifiers],
         "optimizers_state_dict": [c.state_dict() for c in classifiers_optimizers],
         "best_val_recall1": best_val_recall1
-    }, is_best, output_folder)
+    }, is_best, args.output_folder)
 
 logging.info(f"Trained for {epoch_num+1:02d} epochs, in total in {str(datetime.now() - start_time)[:-7]}")
 
 #### Test best model on test set v1
-best_model_state_dict = torch.load(f"{output_folder}/best_model.pth")
+best_model_state_dict = torch.load(f"{args.output_folder}/best_model.pth")
 model.load_state_dict(best_model_state_dict)
 
 logging.info(f"Now testing on the test set: {test_ds}")

@@ -8,6 +8,7 @@ from argparse import Namespace
 import cosface_loss
 from datasets.test_dataset import TestDataset
 from datasets.train_dataset import TrainDataset
+from datasets.grl_dataset import GRLDataset
 from model import network
 import multiprocessing
 
@@ -63,11 +64,17 @@ def resume_train(args: Namespace, output_folder: str, model: torch.nn.Module,
 
     return model, model_optimizer, classifiers, classifiers_optimizers, best_val_recall1, start_epoch_num
 
-def create_model(args):
-    model = network.GeoLocalizationNet(args.backbone, args.fc_output_dim)
+def build_model(args):
+    geoLocalizationLayer = network.GeoLocalizationNet(args.backbone, args.fc_output_dim)
+
+    if args.grl:
+        grl_discriminator = network.get_discriminator(args.encoder_dim, len(args.grl_datasets.split("+")))
+    else:
+        grl_discriminator = None
+
+    model = network.AttenNetVLAD(args.backbone, geoLocalizationLayer, grl_discriminator, args.attention)
 
     logging.info(f"There are {torch.cuda.device_count()} GPUs and {multiprocessing.cpu_count()} CPUs.")
-
     if args.resume_model is not None:
         logging.debug(f"Loading model from {args.resume_model}")
         model_state_dict = torch.load(args.resume_model)
@@ -86,8 +93,13 @@ def load_datasets(args):
     logging.info(f"The {len(groups)} groups have respectively the following number of images {[g.get_images_num() for g in groups]}")
 
     val_ds = TestDataset(args.val_set_folder, positive_dist_threshold=args.positive_dist_threshold)
-    test_ds = TestDataset(args.test_set_folder, queries_folder="queries_v1", positive_dist_threshold=args.positive_dist_threshold)
     logging.info(f"Validation set: {val_ds}")
+    test_ds = TestDataset(args.test_set_folder, queries_folder="queries_v1", positive_dist_threshold=args.positive_dist_threshold)
     logging.info(f"Test set: {test_ds}")
 
-    return groups, classifiers, classifiers_optimizers, val_ds, test_ds
+    grl_ds = None
+    if args.grl:
+        grl_ds = GRLDataset(args.grl_datasets.split("+"))
+
+
+    return groups, classifiers, classifiers_optimizers, val_ds, test_ds, grl_ds
