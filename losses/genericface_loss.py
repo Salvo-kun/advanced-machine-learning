@@ -4,7 +4,7 @@ import torch.nn as nn
 
 
 class GenericFace(ABC, nn.Module):
-    """ Base class for ArcFace, SphereFace, CosFace loss classes
+    """ Base class for ArcFace, SphereFace, CosFace, GAMP loss classes
     """
     def __init__(self, feat_dim, num_class, s, m):
         super().__init__()

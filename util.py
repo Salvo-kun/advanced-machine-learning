@@ -4,7 +4,7 @@ import shutil
 import logging
 from typing import Type, List
 from argparse import Namespace
-from losses import genericface_loss, cosface_loss, sphereface_loss, arcface_loss
+from losses import gamp_loss, genericface_loss, cosface_loss, sphereface_loss, arcface_loss
 
 
 def move_to_device(optimizer: Type[torch.optim.Optimizer], device: str):
@@ -68,6 +68,8 @@ def choose_loss(loss_type, *args):
         loss = arcface_loss.ArcFace
     elif loss_type == 'sphereface':
         loss = sphereface_loss.SphereFace
+    elif loss_type == 'gamp':
+        loss = gamp_loss.GAMP
     else:
         raise ValueError(f"Loss type {loss_type} is not valid!")
 
