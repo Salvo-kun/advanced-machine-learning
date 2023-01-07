@@ -7,7 +7,7 @@ from losses.genericface_loss import GenericFace
 class GAMP(GenericFace):
     """ Generalized angular margin penalty-based loss
     """
-    def __init__(self, feat_dim, num_class, s=30., m=(1.5, 0.5, 0.4)):
+    def __init__(self, feat_dim, num_class, s=30., m=(1., 0.3, 0.2)):
         super(GAMP, self).__init__(feat_dim, num_class, s, m)
 
     def forward(self, x, y):
