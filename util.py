@@ -4,8 +4,12 @@ import shutil
 import logging
 from typing import Type, List
 from argparse import Namespace
-from cosface_loss import MarginCosineProduct
 
+import cosface_loss
+from datasets.test_dataset import TestDataset
+from datasets.train_dataset import TrainDataset
+from model import network
+import multiprocessing
 
 def move_to_device(optimizer: Type[torch.optim.Optimizer], device: str):
     for state in optimizer.state.values():
@@ -30,18 +34,18 @@ def resume_train(args: Namespace, output_folder: str, model: torch.nn.Module,
     logging.info(f"Loading checkpoint: {args.resume_train}")
     checkpoint = torch.load(args.resume_train)
     start_epoch_num = checkpoint["epoch_num"]
-    
+
     model_state_dict = checkpoint["model_state_dict"]
     model.load_state_dict(model_state_dict)
-    
+
     model = model.to(args.device)
     model_optimizer.load_state_dict(checkpoint["optimizer_state_dict"])
-    
+
     assert args.groups_num == len(classifiers) == len(classifiers_optimizers) == \
         len(checkpoint["classifiers_state_dict"]) == len(checkpoint["optimizers_state_dict"]), \
         (f"{args.groups_num}, {len(classifiers)}, {len(classifiers_optimizers)}, "
          f"{len(checkpoint['classifiers_state_dict'])}, {len(checkpoint['optimizers_state_dict'])}")
-    
+
     for c, sd in zip(classifiers, checkpoint["classifiers_state_dict"]):
         # Move classifiers to GPU before loading their optimizers
         c = c.to(args.device)
@@ -51,10 +55,39 @@ def resume_train(args: Namespace, output_folder: str, model: torch.nn.Module,
     for c in classifiers:
         # Move classifiers back to CPU to save some GPU memory
         c = c.cpu()
-    
+
     best_val_recall1 = checkpoint["best_val_recall1"]
-    
+
     # Copy best model to current output_folder
     shutil.copy(args.resume_train.replace("last_checkpoint.pth", "best_model.pth"), output_folder)
-    
+
     return model, model_optimizer, classifiers, classifiers_optimizers, best_val_recall1, start_epoch_num
+
+def create_model(args):
+    model = network.GeoLocalizationNet(args.backbone, args.fc_output_dim)
+
+    logging.info(f"There are {torch.cuda.device_count()} GPUs and {multiprocessing.cpu_count()} CPUs.")
+
+    if args.resume_model is not None:
+        logging.debug(f"Loading model from {args.resume_model}")
+        model_state_dict = torch.load(args.resume_model)
+        model.load_state_dict(model_state_dict)
+
+    return model.to(args.device).train()
+
+def load_datasets(args):
+    groups = [TrainDataset(args, args.train_set_folder, M=args.M, alpha=args.alpha, N=args.N, L=args.L, current_group=n, min_images_per_class=args.min_images_per_class) for n in range(args.groups_num)]
+    # Each group has its own classifier, which depends on the number of classes in the group
+    classifiers = [cosface_loss.MarginCosineProduct(args.fc_output_dim, len(group)) for group in groups]
+    classifiers_optimizers = [torch.optim.Adam(classifier.parameters(), lr=args.classifiers_lr) for classifier in classifiers]
+
+    logging.info(f"Using {len(groups)} groups")
+    logging.info(f"The {len(groups)} groups have respectively the following number of classes {[len(g) for g in groups]}")
+    logging.info(f"The {len(groups)} groups have respectively the following number of images {[g.get_images_num() for g in groups]}")
+
+    val_ds = TestDataset(args.val_set_folder, positive_dist_threshold=args.positive_dist_threshold)
+    test_ds = TestDataset(args.test_set_folder, queries_folder="queries_v1", positive_dist_threshold=args.positive_dist_threshold)
+    logging.info(f"Validation set: {val_ds}")
+    logging.info(f"Test set: {test_ds}")
+
+    return groups, classifiers, classifiers_optimizers, val_ds, test_ds
