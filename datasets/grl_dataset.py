@@ -1,9 +1,9 @@
 import glob
 import random
 import logging
-import torch
 from PIL import Image
 import torchvision.transforms as transforms
+import torch.utils.data as data
 
 grl_transform = transforms.Compose([
             transforms.RandomHorizontalFlip(),
@@ -12,7 +12,7 @@ grl_transform = transforms.Compose([
             transforms.Normalize(mean=[0.485, 0.456, 0.406], std=[0.229, 0.224, 0.225]),
     ])
 
-class GrlDataset(torch.utils.data.Dataset):
+class GrlDataset(data.Dataset):
     def __init__(self, datasets_paths, length=1000000):
         """
         datasets_paths is a list containing the folders which contain the N datasets.

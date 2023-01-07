@@ -8,7 +8,7 @@ from argparse import Namespace
 import cosface_loss
 from datasets.test_dataset import TestDataset
 from datasets.train_dataset import TrainDataset
-from datasets.grl_dataset import GRLDataset
+from datasets.grl_dataset import GrlDataset
 from model import network
 import multiprocessing
 
@@ -99,7 +99,7 @@ def load_datasets(args):
 
     grl_ds = None
     if args.grl:
-        grl_ds = GRLDataset(args.grl_datasets.split("+"))
+        grl_ds = GrlDataset(args.grl_datasets.split("+"))
 
 
     return groups, classifiers, classifiers_optimizers, val_ds, test_ds, grl_ds
