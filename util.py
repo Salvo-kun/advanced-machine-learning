@@ -5,7 +5,7 @@ import logging
 from typing import Type, List
 from argparse import Namespace
 
-import cosface_loss
+from cosface_loss import MarginCosineProduct
 from datasets.test_dataset import TestDataset
 from datasets.train_dataset import TrainDataset
 from datasets.grl_dataset import GrlDataset
@@ -85,7 +85,7 @@ def build_model(args):
 def load_datasets(args):
     groups = [TrainDataset(args, args.train_set_folder, M=args.M, alpha=args.alpha, N=args.N, L=args.L, current_group=n, min_images_per_class=args.min_images_per_class) for n in range(args.groups_num)]
     # Each group has its own classifier, which depends on the number of classes in the group
-    classifiers = [cosface_loss.MarginCosineProduct(args.fc_output_dim, len(group)) for group in groups]
+    classifiers = [MarginCosineProduct(args.fc_output_dim, len(group)) for group in groups]
     classifiers_optimizers = [torch.optim.Adam(classifier.parameters(), lr=args.classifiers_lr) for classifier in classifiers]
 
     logging.info(f"Using {len(groups)} groups")
