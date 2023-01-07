@@ -67,6 +67,7 @@ def resume_train(args: Namespace, output_folder: str, model: torch.nn.Module,
 def build_model(args):
     geoLocalizationLayer = network.GeoLocalizationNet(args.backbone, args.fc_output_dim)
 
+    args.encoder_dim = 512
     if args.grl:
         grl_discriminator = network.get_discriminator(args.encoder_dim, len(args.grl_datasets.split("+")))
     else:
