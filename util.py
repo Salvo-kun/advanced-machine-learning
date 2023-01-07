@@ -65,15 +65,7 @@ def resume_train(args: Namespace, output_folder: str, model: torch.nn.Module,
     return model, model_optimizer, classifiers, classifiers_optimizers, best_val_recall1, start_epoch_num
 
 def build_model(args):
-    geoLocalizationLayer = network.GeoLocalizationNet(args.backbone, args.fc_output_dim)
-
-    args.encoder_dim = 512
-    if args.grl:
-        grl_discriminator = network.get_discriminator(args.encoder_dim, len(args.grl_datasets.split("+")))
-    else:
-        grl_discriminator = None
-
-    model = network.AttenNetVLAD(args.backbone, geoLocalizationLayer, grl_discriminator, args.attention)
+    model = network.GeoLocalizationNet(args.backbone, args.fc_output_dim)
 
     logging.info(f"There are {torch.cuda.device_count()} GPUs and {multiprocessing.cpu_count()} CPUs.")
     if args.resume_model is not None:
