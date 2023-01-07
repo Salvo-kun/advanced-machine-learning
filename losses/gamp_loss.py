@@ -25,15 +25,17 @@ class GAMP(GenericFace):
             k = (m_theta / math.pi).floor()
             sign = -2 * torch.remainder(k, 2) + 1  # (-1)**k
             phi_theta = sign * torch.cos(m_theta) - 2. * k
+            d_theta_sphere = phi_theta - cos_theta
 
             theta_m = torch.acos(phi_theta.clamp(-1+1e-5, 1-1e-5))
             theta_m.scatter_(1, y.view(-1, 1), self.m[1], reduce='add')
             theta_m.clamp_(1e-5, 3.14159)
+            d_theta_arc = torch.cos(theta_m) - cos_theta
 
-            d_theta = torch.zeros_like(theta_m)
-            d_theta.scatter_(1, y.view(-1, 1), -self.m[2], reduce='add')
+            d_theta_cos = torch.zeros_like(theta_m)
+            d_theta_cos.scatter_(1, y.view(-1, 1), -self.m[2], reduce='add')
 
-        logits = self.s * (torch.cos(theta_m) + d_theta)
+        logits = self.s * (cos_theta + d_theta_arc + d_theta_cos)
 
         return logits
 
