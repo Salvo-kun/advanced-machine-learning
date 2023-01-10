@@ -38,3 +38,21 @@ class L2Norm(nn.Module):
     
     def forward(self, x):
         return F.normalize(x, p=2.0, dim=self.dim)
+
+class GradientReversal(nn.Module):
+    def __init__(self):
+        super().__init__()
+    def forward(self, x):
+        x = torch.nn.functional.adaptive_avg_pool2d(x, (1,1))
+        x = x.view(x.shape[0], -1)
+        return GradientReversalFunction.apply(x)
+
+class GradientReversalFunction(torch.autograd.Function):
+    @staticmethod
+    def forward(ctx, x):
+        return x.clone()
+    @staticmethod
+    def backward(ctx, grads):
+        dx = -grads.new_tensor(1) * grads
+        return dx, None
+
