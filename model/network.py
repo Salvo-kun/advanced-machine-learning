@@ -8,6 +8,7 @@ from torch import nn
 from math import ceil
 
 import faiss
+import resnet
 from model.layers import Flatten, L2Norm, GeM, GradientReversal
 from torch.utils.data import DataLoader, SubsetRandomSampler, Subset
 
@@ -138,36 +139,20 @@ def get_aggregation(features_dim, fc_output_dim):
     return aggregation
 
 def get_backbone(args):
-    if args.backbone.startswith("resnet"):
-        if args.backbone == "resnet18":
-            backbone = torchvision.models.resnet18(pretrained=True)
-        elif args.backbone == "resnet50":
-            backbone = torchvision.models.resnet50(pretrained=True)
-        elif args.backbone == "resnet101":
-            backbone = torchvision.models.resnet101(pretrained=True)
-        elif args.backbone == "resnet152":
-            backbone = torchvision.models.resnet152(pretrained=True)
+    backbone = resnet.resnet18(pretrain="places")
 
-        for name, child in backbone.named_children():
-            if name == "layer3":  # Freeze layers before conv_3
-                break
-            for params in child.parameters():
-                params.requires_grad = False
-        logging.debug(f"Train only layer3 and layer4 of the {args.backbone}, freeze the previous ones")
-        # layers = list(backbone.children())[:-2]  # Remove avg pooling and FC layer
-    elif args.backbone == "vgg16":
-        backbone = torchvision.models.vgg16(pretrained=True)
-        layers = list(backbone.features.children())[:-2]  # Remove avg pooling and FC layer
-        for layer in layers[:-5]:
-            for p in layer.parameters():
-                p.requires_grad = False
-        logging.debug("Train last layers of the VGG-16, freeze the previous ones")
+    for name, child in backbone.named_children():
+        if name == "layer3":  # Freeze layers before conv_3
+            break
+        for params in child.parameters():
+            params.requires_grad = False
+    logging.debug(f"Train only layer3 and layer4 of the {args.backbone}, freeze the previous ones")
 
+    # layers = list(backbone.children())[:-2]  # Remove avg pooling and FC layer
     # backbone = torch.nn.Sequential(*layers)
+    features_dim = CHANNELS_NUM_IN_LAST_CONV[args.backbone]
 
-    # features_dim = CHANNELS_NUM_IN_LAST_CONV[args.backbone]
-
-    # return backbone, features_dim
+    return backbone, features_dim
 
     return backbone
 
