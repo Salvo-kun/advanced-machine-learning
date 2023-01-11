@@ -109,6 +109,16 @@ for epoch_num in range(start_epoch_num, args.epochs_num):
             loss.backward()
             epoch_losses = np.append(epoch_losses, loss.item())
             del loss, output, images
+
+            if args.grl:
+                images, labels = next(iter(grl_dataloader))
+                images, labels = images.to(args.device), labels.to(args.device)
+                outputs = model(images, grl=True)
+                loss_grl = cross_entropy_loss(outputs, labels)
+                (loss_grl * args.grl_loss_weight).backward()
+                epoch_grl_loss += loss_grl.item()
+                del images, labels, outputs, loss_grl
+
             model_optimizer.step()
             classifiers_optimizers[current_group_num].step()
         else:  # Use AMP 16
@@ -119,6 +129,16 @@ for epoch_num in range(start_epoch_num, args.epochs_num):
             scaler.scale(loss).backward()
             epoch_losses = np.append(epoch_losses, loss.item())
             del loss, output, images
+
+            if args.grl:
+                images, labels = next(iter(grl_dataloader))
+                images, labels = images.to(args.device), labels.to(args.device)
+                outputs = model(images, grl=True)
+                loss_grl = cross_entropy_loss(outputs, labels)
+                (loss_grl * args.grl_loss_weight).backward()
+                epoch_grl_loss += loss_grl.item()
+                del images, labels, outputs, loss_grl
+
             scaler.step(model_optimizer)
             scaler.step(classifiers_optimizers[current_group_num])
             scaler.update()
