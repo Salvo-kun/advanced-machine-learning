@@ -52,6 +52,7 @@ def parse_arguments(is_training: bool = True):
     parser.add_argument("--save_dir", type=str, default="default", help="name of directory on which to save the logs, under logs/save_dir")
 
     # xleddyl additions
+    parser.add_argument("--pretrain", type=str, default="places", choices=["imagenet", "places"], help="pretrained to use")
     parser.add_argument("--num_clusters", type=int, default=64, help="Number of clusters for NetVLAD layer")
     parser.add_argument("--encoder_dim", default=512, help="_")
     parser.add_argument("--attention", action="store_true", help="Use attention mechanism")

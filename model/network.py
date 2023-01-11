@@ -137,15 +137,15 @@ def get_aggregation(features_dim, fc_output_dim):
     )
     return aggregation
 
-def get_backbone(backbone_name):
-    if backbone_name.startswith("resnet"):
-        if backbone_name == "resnet18":
+def get_backbone(args):
+    if args.backbone.startswith("resnet"):
+        if args.backbone == "resnet18":
             backbone = torchvision.models.resnet18(pretrained=True)
-        elif backbone_name == "resnet50":
+        elif args.backbone == "resnet50":
             backbone = torchvision.models.resnet50(pretrained=True)
-        elif backbone_name == "resnet101":
+        elif args.backbone == "resnet101":
             backbone = torchvision.models.resnet101(pretrained=True)
-        elif backbone_name == "resnet152":
+        elif args.backbone == "resnet152":
             backbone = torchvision.models.resnet152(pretrained=True)
 
         for name, child in backbone.named_children():
@@ -153,12 +153,11 @@ def get_backbone(backbone_name):
                 break
             for params in child.parameters():
                 params.requires_grad = False
-        logging.debug(f"Train only layer3 and layer4 of the {backbone_name}, freeze the previous ones")
+        logging.debug(f"Train only layer3 and layer4 of the {args.backbone}, freeze the previous ones")
         # layers = list(backbone.children())[:-2]  # Remove avg pooling and FC layer
-
-    elif backbone_name == "vgg16":
+    elif args.backbone == "vgg16":
         backbone = torchvision.models.vgg16(pretrained=True)
-        # layers = list(backbone.features.children())[:-2]  # Remove avg pooling and FC layer
+        layers = list(backbone.features.children())[:-2]  # Remove avg pooling and FC layer
         for layer in layers[:-5]:
             for p in layer.parameters():
                 p.requires_grad = False
@@ -166,9 +165,11 @@ def get_backbone(backbone_name):
 
     # backbone = torch.nn.Sequential(*layers)
 
-    features_dim = CHANNELS_NUM_IN_LAST_CONV[backbone_name]
+    # features_dim = CHANNELS_NUM_IN_LAST_CONV[args.backbone]
 
-    return backbone, features_dim
+    # return backbone, features_dim
+
+    return backbone
 
 def get_discriminator(input_dim, num_classes=2):
     discriminator = nn.Sequential(
