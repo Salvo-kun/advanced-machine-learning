@@ -154,17 +154,17 @@ def get_backbone(backbone_name):
             for params in child.parameters():
                 params.requires_grad = False
         logging.debug(f"Train only layer3 and layer4 of the {backbone_name}, freeze the previous ones")
-        layers = list(backbone.children())[:-2]  # Remove avg pooling and FC layer
+        # layers = list(backbone.children())[:-2]  # Remove avg pooling and FC layer
 
     elif backbone_name == "vgg16":
         backbone = torchvision.models.vgg16(pretrained=True)
-        layers = list(backbone.features.children())[:-2]  # Remove avg pooling and FC layer
+        # layers = list(backbone.features.children())[:-2]  # Remove avg pooling and FC layer
         for layer in layers[:-5]:
             for p in layer.parameters():
                 p.requires_grad = False
         logging.debug("Train last layers of the VGG-16, freeze the previous ones")
 
-    backbone = torch.nn.Sequential(*layers)
+    # backbone = torch.nn.Sequential(*layers)
 
     features_dim = CHANNELS_NUM_IN_LAST_CONV[backbone_name]
 
