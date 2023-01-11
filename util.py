@@ -64,17 +64,6 @@ def resume_train(args: Namespace, output_folder: str, model: torch.nn.Module,
 
     return model, model_optimizer, classifiers, classifiers_optimizers, best_val_recall1, start_epoch_num
 
-def build_model(args):
-    model = network.GeoLocalizationNet(args.backbone, args.fc_output_dim)
-
-    logging.info(f"There are {torch.cuda.device_count()} GPUs and {multiprocessing.cpu_count()} CPUs.")
-    if args.resume_model is not None:
-        logging.debug(f"Loading model from {args.resume_model}")
-        model_state_dict = torch.load(args.resume_model)
-        model.load_state_dict(model_state_dict)
-
-    return model.to(args.device).train()
-
 def load_datasets(args):
     groups = [TrainDataset(args, args.train_set_folder, M=args.M, alpha=args.alpha, N=args.N, L=args.L, current_group=n, min_images_per_class=args.min_images_per_class) for n in range(args.groups_num)]
     # Each group has its own classifier, which depends on the number of classes in the group
@@ -96,3 +85,28 @@ def load_datasets(args):
 
 
     return groups, classifiers, classifiers_optimizers, val_ds, test_ds, grl_ds
+
+def build_model(args):
+    logging.debug(f"Building {'attentive ' if args.attention else ''}NetVLAD {'with GRL' if args.grl else ''}")
+    #model = network.GeoLocalizationNet(args.backbone, args.fc_output_dim)
+
+    backbone, features_dim = network.get_backbone(args)
+    aggregation = network.get_aggregation(features_dim, args.fc_output_dim)
+    mod_backbone = torch.nn.Sequential(backbone, aggregation)
+
+    netvlad_layer = network.NetVLAD(num_clusters = args.num_clusters, dim = args.encoder_dim)
+
+    if args.grl:
+        grl_discriminator = network.get_discriminator(args.encoder_dim, len(args.grl_datasets.split("+")))
+    else:
+        grl_discriminator = None
+
+    model = network.AttenNetVLAD(mod_backbone, netvlad_layer, grl_discriminator, attention=args.attention)
+
+    logging.info(f"There are {torch.cuda.device_count()} GPUs and {multiprocessing.cpu_count()} CPUs.")
+    if args.resume_model is not None:
+        logging.debug(f"Loading model from {args.resume_model}")
+        model_state_dict = torch.load(args.resume_model)
+        model.load_state_dict(model_state_dict)
+
+    return model.to(args.device).train()

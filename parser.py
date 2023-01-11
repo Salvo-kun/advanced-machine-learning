@@ -52,6 +52,7 @@ def parse_arguments(is_training: bool = True):
     parser.add_argument("--save_dir", type=str, default="default", help="name of directory on which to save the logs, under logs/save_dir")
 
     # xleddyl additions
+    parser.add_argument("--encoder_dim", default=512, help="_")
     parser.add_argument("--attention", action="store_true", help="Use attention mechanism")
     parser.add_argument("--grl_datasets", type=str, default="train/queries+test/queries_5", help="Paths for GRL datasets, linked by +")
     parser.add_argument("--grl", action="store_true", help="Use Gradient Reversal Layer (GRL)")
