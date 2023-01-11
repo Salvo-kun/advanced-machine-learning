@@ -32,7 +32,7 @@ model = util.build_model(args)
 ######################################### OPTIMIZER & LOSSES #########################################
 model_optimizer = torch.optim.Adam(model.parameters(), lr=args.lr)
 criterion = torch.nn.CrossEntropyLoss()
-criterion_netvlad = torch.nn.TripletMarginLoss(margin=args.margin ** 0.5, p=2, reduction="sum")
+# criterion_netvlad = torch.nn.TripletMarginLoss(margin=args.margin ** 0.5, p=2, reduction="sum")
 
 ######################################### DATASETS #########################################
 groups, classifiers, classifiers_optimizers, val_ds, test_ds, grl_ds = util.load_datasets(args)
