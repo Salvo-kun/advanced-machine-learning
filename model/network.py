@@ -139,7 +139,7 @@ def get_aggregation(features_dim, fc_output_dim):
     return aggregation
 
 def get_backbone(args):
-    backbone = resnet.resnet18(pretrain="places")
+    backbone = resnet.resnet18(pretrain="imagenet")
 
     for name, child in backbone.named_children():
         if name == "layer3":  # Freeze layers before conv_3

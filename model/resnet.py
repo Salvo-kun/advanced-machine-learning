@@ -181,7 +181,7 @@ class ResNet(nn.Module):
             return x, conv_layer4BN
 
 
-def resnet18(pretrain="places", noBN=True, **kwargs):
+def resnet18(pretrain="imagenet", noBN=True, **kwargs):
     if pretrain == "imagenet":
         num_classes = 1000
         state_dict = model_zoo.load_url(model_urls["resnet18"])
