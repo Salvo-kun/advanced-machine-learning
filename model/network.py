@@ -148,13 +148,11 @@ def get_backbone(args):
             params.requires_grad = False
     logging.debug(f"Train only layer3 and layer4 of the {args.backbone}, freeze the previous ones")
 
-    # layers = list(backbone.children())[:-2]  # Remove avg pooling and FC layer
-    # backbone = torch.nn.Sequential(*layers)
+    layers = list(backbone.children())[:-2]  # Remove avg pooling and FC layer
+    backbone = torch.nn.Sequential(*layers)
     features_dim = CHANNELS_NUM_IN_LAST_CONV[args.backbone]
 
     return backbone, features_dim
-
-    return backbone
 
 def get_discriminator(input_dim, num_classes=2):
     discriminator = nn.Sequential(

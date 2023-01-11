@@ -90,10 +90,9 @@ def build_model(args):
     logging.debug(f"Building {'attentive ' if args.attention else ''}NetVLAD {'with GRL' if args.grl else ''}")
     #model = network.GeoLocalizationNet(args.backbone, args.fc_output_dim)
 
-    backbone, _ = network.get_backbone(args)
-    # backbone, features_dim = network.get_backbone(args.backbone)
-    # aggregation = network.get_aggregation(features_dim, args.fc_output_dim)
-    # mod_backbone = torch.nn.Sequential(backbone, aggregation)
+    backbone, features_dim = network.get_backbone(args.backbone)
+    aggregation = network.get_aggregation(features_dim, args.fc_output_dim)
+    mod_backbone = torch.nn.Sequential(backbone, aggregation)
 
     netvlad_layer = network.NetVLAD(num_clusters = args.num_clusters, dim = args.encoder_dim)
 
@@ -102,7 +101,7 @@ def build_model(args):
     else:
         grl_discriminator = None
 
-    model = network.AttenNetVLAD(backbone, netvlad_layer, grl_discriminator, attention=args.attention)
+    model = network.AttenNetVLAD(mod_backbone, netvlad_layer, grl_discriminator, attention=args.attention)
 
     logging.info(f"There are {torch.cuda.device_count()} GPUs and {multiprocessing.cpu_count()} CPUs.")
     if args.resume_model is not None:
