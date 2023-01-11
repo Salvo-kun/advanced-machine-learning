@@ -90,7 +90,7 @@ def build_model(args):
     logging.debug(f"Building {'attentive ' if args.attention else ''}NetVLAD {'with GRL' if args.grl else ''}")
     #model = network.GeoLocalizationNet(args.backbone, args.fc_output_dim)
 
-    backbone, features_dim = network.get_backbone(args.backbone)
+    backbone, features_dim = network.get_backbone(args)
     aggregation = network.get_aggregation(features_dim, args.fc_output_dim)
     mod_backbone = torch.nn.Sequential(backbone, aggregation)
 
