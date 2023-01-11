@@ -8,7 +8,7 @@ from torch import nn
 from math import ceil
 
 import faiss
-import resnet
+import model.resnet as resnet
 from model.layers import Flatten, L2Norm, GeM, GradientReversal
 from torch.utils.data import DataLoader, SubsetRandomSampler, Subset
 
