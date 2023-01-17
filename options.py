@@ -55,11 +55,12 @@ def parse_arguments(is_training: bool = True):
     parser.add_argument("--save_dir", type=str, default="default",
                         help="name of directory on which to save the logs, under logs/save_dir")    
     # Loss type
-    parser.add_argument("--loss_type", type=str, default="cosface",
-                        choices=["cosface", "arcface", "sphereface", "gamp"], help="type of loss to be used during training")
+    parser.add_argument("--loss_type", type=str, default="cosface", choices=["cosface", "arcface", "sphereface", "gamp"], help="type of loss to be used during training")
 
     # Soups/Ensembles
-    parser.add_argument("--save_predictions", action="store_true", help="store predictions into output folder if true") 
+    parser.add_argument("--save_descriptors", action="store_true", help="store descriptors into output folder if true") 
+    parser.add_argument("--aggregate_by", type=str, default="greedy_soup", choices=["uniform_soup", "greedy_soup", "uniform_ensemble", "greedy_ensemble"], help="type of loss to be used during training")
+    parser.add_argument('--model_paths', nargs='+', help='Ordered list of paths to be used in soups/ensembles')
     
     args = parser.parse_args()
     

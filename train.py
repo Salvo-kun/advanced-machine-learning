@@ -10,7 +10,7 @@ import torchvision.transforms as T
 
 import test
 import util
-import myparser
+import options
 import commons
 import augmentations
 from model import network
@@ -20,7 +20,7 @@ from datasets.train_dataset import TrainDataset
 if __name__ == '__main__':
     torch.backends.cudnn.benchmark = True  # Provides a speedup
 
-    args = myparser.parse_arguments()
+    args = options.parse_arguments()
     start_time = datetime.now()
     output_folder = f"logs/{args.save_dir}/{start_time.strftime('%Y-%m-%d_%H-%M-%S')}"
     commons.make_deterministic(args.seed)

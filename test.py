@@ -39,7 +39,7 @@ def test(args: Namespace, eval_ds: Dataset, model: torch.nn.Module, output_folde
             descriptors = descriptors.cpu().numpy()
             all_descriptors[indices.numpy(), :] = descriptors  
 
-    if args.save_predictions and output_folder is not None:
+    if args.save_descriptors and output_folder is not None:
         torch.save(all_descriptors, f'{output_folder}/descriptors.pth')
     
     predictions = get_predictions(eval_ds, args.fc_output_dim, all_descriptors)
