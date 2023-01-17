@@ -1,0 +1,74 @@
+{
+    "arcface_cl_lr_e-3": {
+        "sf_xs": 53.5,
+        "tokyo_xs": 68.3,
+        "tokyo_night": 50.5,
+        "path": "logs/train_arcface/2023-01-12_15-32-47/best_model.pth"
+    },
+    "gamp_cl_lr_e-3": {
+        "sf_xs": 52.7,
+        "tokyo_xs": 67.9,
+        "tokyo_night": 44.8,
+        "path": "logs/train_gamp/2023-01-11_15-26-26/best_model.pth"
+    },
+    "sphereface_cl_lr_e-3": {
+        "sf_xs": 52.1,
+        "tokyo_xs": 69.5,
+        "tokyo_night": 48.6,
+        "path": "logs/train_sphereface/2023-01-13_12-24-32/best_model.pth"
+    },
+    "sphereface_seed_3": {
+        "sf_xs": 50.6,
+        "tokyo_xs": 69.8,
+        "tokyo_night": 57.1,
+        "path": "logs/train_sphereface/2023-01-10_12-32-50/best_model.pth"
+    },
+    "cosface_cl_lr_e-3": {
+        "sf_xs": 50.5,
+        "tokyo_xs": 67.9,
+        "tokyo_night": 46.7,
+        "path": "logs/train_cosface/2023-01-12_08-59-21/best_model.pth"
+    },
+    "cosface_seed_3": {
+        "sf_xs": 49.5,
+        "tokyo_xs": 69.5,
+        "tokyo_night": 53.3,
+        "path": "logs/train_cosface/2023-01-09_10-21-22/best_model.pth"
+    },
+    "gamp_seed_3": {
+        "sf_xs": 48.9,
+        "tokyo_xs": 69.5,
+        "tokyo_night": 53.3,
+        "path": "logs/train_gamp/2023-01-11_10-12-16/best_model.pth"
+    },
+    "sphereface_standard": {
+        "sf_xs": 48.4,
+        "tokyo_xs": 69.2,
+        "tokyo_night": 49.5,
+        "path": "logs/train_sphereface/2023-01-07_13-16-38/best_model.pth"
+    },
+    "arcface_standard": {
+        "sf_xs": 48.1,
+        "tokyo_xs": 68.9,
+        "tokyo_night": 53.3,
+        "path": "logs/train_arcface/2023-01-06_16-41-53/best_model.pth"
+    },
+    "gamp_standard": {
+        "sf_xs": 47.9,
+        "tokyo_xs": 69.8,
+        "tokyo_night": 49.5,
+        "path": "logs/train_gamp/2023-01-08_13-55-29/best_model.pth"
+    },
+    "arcface_seed_3": {
+        "sf_xs": 47.6,
+        "tokyo_xs": 67.9,
+        "tokyo_night": 54.3,
+        "path": "logs/train_arcface/2023-01-09_18-13-52/best_model.pth"
+    },
+    "cosface_standard": {
+        "sf_xs": 47.4,
+        "tokyo_xs": 69.5,
+        "tokyo_night": 48.6,
+        "path": "logs/train_cosface/2023-01-06_10-23-42/best_model.pth"
+    }
+}
