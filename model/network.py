@@ -5,7 +5,8 @@ import torchvision
 from torch import nn
 from typing import Tuple
 
-from model.layers import Flatten, L2Norm, GeM
+from model.layers import Flatten, L2Norm, GeM, GLEM
+
 
 # The number of channels in the last convolutional layer, the one before average pooling
 CHANNELS_NUM_IN_LAST_CONV = {
@@ -18,7 +19,7 @@ CHANNELS_NUM_IN_LAST_CONV = {
 
 
 class GeoLocalizationNet(nn.Module):
-    def __init__(self, backbone : str, fc_output_dim : int):
+    def __init__(self, backbone : str, fc_output_dim : int, attention_enabled : bool = False):
         """Return a model for GeoLocalization.
         
         Args:
@@ -29,13 +30,21 @@ class GeoLocalizationNet(nn.Module):
         assert backbone in CHANNELS_NUM_IN_LAST_CONV, f"backbone must be one of {list(CHANNELS_NUM_IN_LAST_CONV.keys())}"
         self.backbone, features_dim = get_backbone(backbone)
         self.aggregation = nn.Sequential(
-            L2Norm(),
-            GeM(),
-            Flatten(),
-            nn.Linear(features_dim, fc_output_dim),
-            L2Norm()
-        )
-    
+                L2Norm(),
+                GLEM(features_dim, features_dim),
+                GeM(),
+                Flatten(),
+                nn.Linear(features_dim, fc_output_dim),
+                L2Norm()
+            ) if attention_enabled else nn.Sequential(
+                L2Norm(),
+                GeM(),
+                Flatten(),
+                nn.Linear(features_dim, fc_output_dim),
+                L2Norm()
+            )
+
+
     def forward(self, x):
         x = self.backbone(x)
         x = self.aggregation(x)

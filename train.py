@@ -31,7 +31,7 @@ if __name__ == '__main__':
 
     #### Model
     criterion = torch.nn.CrossEntropyLoss()
-    model = network.GeoLocalizationNet(args.backbone, args.fc_output_dim)
+    model = network.GeoLocalizationNet(args.backbone, args.fc_output_dim, args.add_attention)
 
     logging.info(f"There are {torch.cuda.device_count()} GPUs and {multiprocessing.cpu_count()} CPUs.")
 

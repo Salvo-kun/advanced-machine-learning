@@ -61,6 +61,9 @@ def parse_arguments(is_training: bool = True):
     parser.add_argument("--save_descriptors", action="store_true", help="store descriptors into output folder if true") 
     parser.add_argument("--aggregate_by", type=str, default="greedy_soup", choices=["uniform_soup", "greedy_soup", "uniform_ensemble", "greedy_ensemble"], help="type of loss to be used during training")
     parser.add_argument('--model_paths', nargs='+', help='Ordered list of paths to be used in soups/ensembles')
+
+    # Attention
+    parser.add_argument("--add_attention", action="store_true", help="adds an attention layer if true") 
     
     args = parser.parse_args()
     
