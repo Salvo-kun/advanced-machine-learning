@@ -64,6 +64,10 @@ def parse_arguments(is_training: bool = True):
 
     # Attention
     parser.add_argument("--add_attention", action="store_true", help="adds an attention layer if true") 
+
+    # ToDayGan
+    parser.add_argument("--domain_shift", type=int, default=-1, help="Apply domain shift during training, transforming images to night (value 0) or day (value 1)")
+    parser.add_argument("--domain_shift_prob", type=float, default=0.1, help="Probability to apply domain shift to a given image, if enabled")
     
     args = parser.parse_args()
     

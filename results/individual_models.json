@@ -1,4 +1,10 @@
 {
+    "sphereface_attention": {
+        "sf_xs": 54.2,
+        "tokyo_xs": 68.3,
+        "tokyo_night": 48.6,
+        "path": "logs/train_sphereface/2023-01-21_13-59-53/best_model.pth"
+    },
     "arcface_cl_lr_e-3": {
         "sf_xs": 53.5,
         "tokyo_xs": 68.3,
@@ -16,6 +22,24 @@
         "tokyo_xs": 69.5,
         "tokyo_night": 48.6,
         "path": "logs/train_sphereface/2023-01-13_12-24-32/best_model.pth"
+    },
+    "arcface_attention": {
+        "sf_xs": 51.8,
+        "tokyo_xs": 70.2,
+        "tokyo_night": 53.3,
+        "path": "logs/train_arcface/2023-01-22_10-27-19/best_model.pth"
+    },
+    "gamp_attention": {
+        "sf_xs": 51.5,
+        "tokyo_xs": 69.5,
+        "tokyo_night": 55.2,
+        "path": "logs/train_gamp/2023-01-22_11-39-13/best_model.pth"
+    },
+    "cosface_attention": {
+        "sf_xs": 50.6,
+        "tokyo_xs": 70.5,
+        "tokyo_night": 56.2,
+        "path": "logs/train_cosface/2023-01-20_08-26-41/best_model.pth"
     },
     "sphereface_seed_3": {
         "sf_xs": 50.6,
