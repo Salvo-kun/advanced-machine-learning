@@ -22,12 +22,12 @@ if __name__ == '__main__':
     logging.info(f"Arguments: {args}")
     logging.info(f"The outputs are being saved in {output_folder}")
 
-    NUM_MODELS = len(options.model_paths)
+    NUM_MODELS = len(args.model_paths)
 
-    if options.aggregate_by == 'uniform_soup':
-        logging.info(f'Performing an uniform soup over {NUM_MODELS} models in this order (paths follows): {options.model_paths}')
+    if args.aggregate_by == 'uniform_soup':
+        logging.info(f'Performing an uniform soup over {NUM_MODELS} models in this order (paths follows): {args.model_paths}')
 
-        for j, model_path in enumerate(options.model_paths):
+        for j, model_path in enumerate(args.model_paths):
             logging.info(f'Adding model located at {model_path} ({j+1} out of {NUM_MODELS}) to uniform soup.')
             assert os.path.exists(model_path)
             state_dict = torch.load(model_path)
@@ -38,13 +38,13 @@ if __name__ == '__main__':
                 uniform_soup = {k : v * (1./NUM_MODELS) + uniform_soup[k] for k, v in state_dict.items()}
 
         torch.save(uniform_soup, f'{output_folder}/uniform_soup_N{NUM_MODELS}.pth')
-    elif options.aggregate_by == 'greedy_soup':
-        logging.info(f'Performing a greedy soup over {NUM_MODELS} models on dataset {args.dataset_folder} in this order (paths follows): {options.model_paths}')
+    elif args.aggregate_by == 'greedy_soup':
+        logging.info(f'Performing a greedy soup over {NUM_MODELS} models on dataset {args.dataset_folder} in this order (paths follows): {args.model_paths}')
         best_recalls = None
         greedy_soup_ingredients = []
         greedy_soup_params = dict()
 
-        for i, path in enumerate(options.model_paths):
+        for i, path in enumerate(args.model_paths):
             if i == 0:
                 logging.info(f'Init with model located at {path} ({i+1} out of {NUM_MODELS}) to greedy soup.')
                 new_ingredient_params = [path]
@@ -75,15 +75,15 @@ if __name__ == '__main__':
 
         logging.info(f'Best greedy soup on {args.dataset_folder}: {greedy_soup_ingredients} with recalls {best_recalls}')
         torch.save(greedy_soup_params, f'{output_folder}/greedy_soup_N{NUM_MODELS}.pth')
-    else:
-        is_greedy = options.aggregate_by != 'uniform_ensemble'
-        logging.info(f'Performing a {"greedy" if is_greedy else "uniform"} ensemble over {NUM_MODELS} models on dataset {args.dataset_folder} in this order (paths follows): {options.model_paths}')
+    elif args.aggregate_by in ['uniform_ensemble', 'greedy_ensemble']:
+        is_greedy = args.aggregate_by != 'uniform_ensemble'
+        logging.info(f'Performing a {"greedy" if is_greedy else "uniform"} ensemble over {NUM_MODELS} models on dataset {args.dataset_folder} in this order (paths follows): {args.model_paths}')
         descriptors = None
         models = list()
         args.save_descriptors = True 
         best_recalls = None
 
-        for i, path in enumerate(options.model_paths):
+        for i, path in enumerate(args.model_paths):
             if i == 0:
                 logging.info(f'Calculate descriptors of model located at {path} ({i+1} out of {NUM_MODELS}) to init the {"greedy" if is_greedy else "uniform"} ensemble.')
                 model = network.GeoLocalizationNet(args.backbone, args.fc_output_dim)
@@ -114,3 +114,5 @@ if __name__ == '__main__':
         logging.info(f'Best {"greedy" if is_greedy else "uniform"} ensemble on {args.dataset_folder}: {models} with recalls {best_recalls}')
         best_descriptors = best_descriptors / float(NUM_MODELS)
         torch.save(best_descriptors, f'{output_folder}/descriptors_{NUM_MODELS}.pth')
+    else:
+        raise KeyError(f'Invalid type of soup: {args.aggregate_by}. See the help menu to choose a valid type.')
