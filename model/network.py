@@ -5,7 +5,7 @@ import torchvision
 from torch import nn
 from typing import Tuple
 
-from model.layers import Flatten, L2Norm, GeM, GLEM
+from model.layers import Flatten, L2Norm, GeM, GLAM
 
 
 # The number of channels in the last convolutional layer, the one before average pooling
@@ -31,7 +31,7 @@ class GeoLocalizationNet(nn.Module):
         self.backbone, features_dim = get_backbone(backbone)
         self.aggregation = nn.Sequential(
                 L2Norm(),
-                GLEM(features_dim, features_dim),
+                GLAM(features_dim, features_dim),
                 GeM(),
                 Flatten(),
                 nn.Linear(features_dim, fc_output_dim),

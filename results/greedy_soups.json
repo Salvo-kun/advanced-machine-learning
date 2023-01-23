@@ -8,15 +8,5 @@
         "sf_xs": 50.3,
         "tokyo_xs": 70.7936507936508,
         "tokyo_night": 56.19047619047619
-    },
-    "greedy_soup_N2_sf_xs_val": {
-        "sf_xs": 52.400000000000006,
-        "tokyo_xs": 69.2063492063492,
-        "tokyo_night": 47.61904761904761
-    },
-    "greedy_soup_N3_sf_xs_val": {
-        "sf_xs": 52.1,
-        "tokyo_xs": 69.2063492063492,
-        "tokyo_night": 48.57142857142857
     }
 }

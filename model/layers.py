@@ -40,7 +40,7 @@ class L2Norm(nn.Module):
     def forward(self, x):
         return F.normalize(x, p=2.0, dim=self.dim)
 
-class GLEM(nn.Module):
+class GLAM(nn.Module):
     def __init__(self, features_dim_in, reduced_channels_dim, kernel_size=3, fusion_weights=None):
         super().__init__()
         self.local_channel_attention = LCAttention(kernel_size)
