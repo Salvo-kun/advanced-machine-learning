@@ -1,0 +1,12 @@
+{
+    "greedy_soup_N12_tokyo_night_test": {
+        "sf_xs": 48.5,
+        "tokyo_xs": 70.47619047619048,
+        "tokyo_night": 58.0952380952381
+    },
+    "greedy_soup_N12_tokyo_xs_test": {
+        "sf_xs": 50.3,
+        "tokyo_xs": 70.7936507936508,
+        "tokyo_night": 56.19047619047619
+    }
+}

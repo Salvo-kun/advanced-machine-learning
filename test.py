@@ -14,7 +14,7 @@ from torch.utils.data import DataLoader, Dataset
 RECALL_VALUES = [1, 5, 10, 20]
 
 
-def test(args: Namespace, eval_ds: Dataset, model: torch.nn.Module) -> Tuple[np.ndarray, str]:
+def test(args: Namespace, eval_ds: Dataset, model: torch.nn.Module, output_folder: str = None) -> Tuple[np.ndarray, str]:
     """Compute descriptors of the given dataset and compute the recalls."""
     
     model = model.eval()
@@ -37,28 +37,44 @@ def test(args: Namespace, eval_ds: Dataset, model: torch.nn.Module) -> Tuple[np.
         for images, indices in tqdm(queries_dataloader, ncols=100):
             descriptors = model(images.to(args.device))
             descriptors = descriptors.cpu().numpy()
-            all_descriptors[indices.numpy(), :] = descriptors
+            all_descriptors[indices.numpy(), :] = descriptors  
+
+    if args.save_descriptors and output_folder is not None:
+        torch.save(all_descriptors, f'{output_folder}/descriptors.pth')
     
-    queries_descriptors = all_descriptors[eval_ds.database_num:]
-    database_descriptors = all_descriptors[:eval_ds.database_num]
-    
-    # Use a kNN to find predictions
-    faiss_index = faiss.IndexFlatL2(args.fc_output_dim)
-    faiss_index.add(database_descriptors)
-    del database_descriptors, all_descriptors
-    
-    logging.debug("Calculating recalls")
-    _, predictions = faiss_index.search(queries_descriptors, max(RECALL_VALUES))
+    predictions = get_predictions(eval_ds, args.fc_output_dim, all_descriptors)
     
     #### For each query, check if the predictions are correct
-    positives_per_query = eval_ds.get_positives()
+    recalls = evaluate_predictions(predictions, eval_ds)
+
+    # Divide by queries_num and multiply by 100, so the recalls are in percentages
+    recalls = recalls / eval_ds.queries_num * 100
+    recalls_str = ", ".join([f"R@{val}: {rec:.1f}" for val, rec in zip(RECALL_VALUES, recalls)])
+    return recalls, recalls_str
+
+def evaluate_predictions(predictions, dataset: Dataset):
+    positives_per_query = dataset.get_positives()
     recalls = np.zeros(len(RECALL_VALUES))
     for query_index, preds in enumerate(predictions):
         for i, n in enumerate(RECALL_VALUES):
             if np.any(np.in1d(preds[:n], positives_per_query[query_index])):
                 recalls[i:] += 1
                 break
-    # Divide by queries_num and multiply by 100, so the recalls are in percentages
-    recalls = recalls / eval_ds.queries_num * 100
-    recalls_str = ", ".join([f"R@{val}: {rec:.1f}" for val, rec in zip(RECALL_VALUES, recalls)])
-    return recalls, recalls_str
+
+    return recalls
+
+def get_predictions(eval_ds, output_dim, all_descriptors):
+    queries_descriptors = all_descriptors[eval_ds.database_num:]
+    database_descriptors = all_descriptors[:eval_ds.database_num]
+    del all_descriptors
+
+     # Use a kNN to find predictions
+    faiss_index = faiss.IndexFlatL2(output_dim)
+    faiss_index.add(database_descriptors)
+    del database_descriptors
+    
+    logging.debug("Calculating recalls")
+    _, predictions = faiss_index.search(queries_descriptors, max(RECALL_VALUES))
+    del queries_descriptors
+
+    return predictions

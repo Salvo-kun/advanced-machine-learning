@@ -104,6 +104,9 @@ class TrainDataset(torch.utils.data.Dataset):
     def initialize(dataset_folder, M, N, alpha, L, min_images_per_class, filename):
         logging.debug(f"Searching training images in {dataset_folder}")
         
+        if not os.path.exists(dataset_folder):
+            raise FileNotFoundError(f"Folder {dataset_folder} does not exist")
+        
         images_paths = sorted(glob(f"{dataset_folder}/**/*.jpg", recursive=True))
         logging.debug(f"Found {len(images_paths)} images")
         
@@ -111,7 +114,7 @@ class TrainDataset(torch.utils.data.Dataset):
         images_metadatas = [p.split("@") for p in images_paths]
         # field 1 is UTM east, field 2 is UTM north, field 9 is heading
         utmeast_utmnorth_heading = [(m[1], m[2], m[9]) for m in images_metadatas]
-        utmeast_utmnorth_heading = np.array(utmeast_utmnorth_heading).astype(np.float)
+        utmeast_utmnorth_heading = np.array(utmeast_utmnorth_heading).astype(float)
         
         logging.debug("For each image, get class and group to which it belongs")
         class_id__group_id = [TrainDataset.get__class_id__group_id(*m, M, alpha, N, L)

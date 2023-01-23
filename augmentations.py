@@ -1,7 +1,10 @@
 
 import torch
-from typing import Tuple, Union
+from typing import Tuple, Union, List
 import torchvision.transforms as T
+from toDayGan.options.test_options import TestOptions
+from toDayGan.models.combogan_model import ComboGANModel
+from toDayGan.data.base_dataset import get_transform
 
 
 class DeviceAgnosticColorJitter(T.ColorJitter):
@@ -33,6 +36,44 @@ class DeviceAgnosticRandomResizedCrop(T.RandomResizedCrop):
         augmented_images = [random_resized_crop(img).unsqueeze(0) for img in images]
         augmented_images = torch.cat(augmented_images)
         return augmented_images
+
+class ToDayTimeShift(torch.nn.Module):
+    def __init__(self, domain: int):
+        """This shift images either from day to night or from night to day (0 or 1) domains but it only accepts batches of images and works on GPU"""
+        super().__init__()
+        self.domain = domain
+        self.opt = TestOptions().parse(["--phase", "test", "--serial_test", "--name", "Training", "--dataroot", "", "--n_domains", "2", "--which_epoch", "150"], verbose=False)
+        self.opt.nThreads = 1   # test code only supports nThreads = 1
+        self.opt.batchSize = 1  # test code only supports batchSize = 1
+        self.transform = get_transform(self.opt, True)
+        self.model = ComboGANModel(self.opt, False)
+    
+    def forward(self, images: torch.Tensor) -> torch.Tensor:
+        assert len(images.shape) == 4, f"images should be a batch of images, but it has shape {images.shape}"
+
+        augmented_images = [self.__apply_domain_shift(self.transform(img)).unsqueeze(0) for img in images]
+        augmented_images = torch.cat(augmented_images)
+        return augmented_images
+        
+    def __apply_domain_shift(self, img: torch.Tensor) -> torch.Tensor:
+        self.model.set_input({'A': img, 'DA': [self.domain], 'path': ''})
+        self.model.test()
+        return self.model.get_generated_tensors(self.domain)[0]
+
+class RandomAugmentation(torch.nn.Module):
+    def __init__(self, augmentations: List[torch.nn.Module], p: float):
+        """This augmentation combines two augmentations choosing the first over the second based on a threshold probability p, but it only accepts batches of images and works on GPU"""
+        assert len(augmentations) == 2, f"Only two possible augmentations but {len(augmentations)} were passed"
+
+        super().__init__()
+        self.augmentations = augmentations
+        self.p = p
+    
+    def forward(self, images: torch.Tensor) -> torch.Tensor:
+        assert len(images.shape) == 4, f"images should be a batch of images, but it has shape {images.shape}"
+
+        augmentation_index = 1 if torch.rand(1).item() < self.p else 0
+        return self.augmentations[augmentation_index].forward(images)
 
 
 if __name__ == "__main__":
